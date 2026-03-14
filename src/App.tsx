@@ -1,10 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "./contexts/AuthContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { SplashPage } from "./pages/SplashPage";
+import { AuthPage } from "./pages/AuthPage";
 import { MainDashboardPage } from "./pages/MainDashboardPage";
 import { ReportCrimePage } from "./pages/ReportCrimePage";
 import { GetHelpPage } from "./pages/GetHelpPage";
@@ -23,32 +26,34 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Splash screen */}
-          <Route path="/" element={<SplashPage />} />
+      <LanguageProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<SplashPage />} />
+              <Route path="/auth" element={<AuthPage />} />
 
-          {/* Main app with layout */}
-          <Route element={<AppLayout />}>
-            <Route path="/main" element={<MainDashboardPage />} />
-            <Route path="/report-crime" element={<ReportCrimePage />} />
-            <Route path="/get-help" element={<GetHelpPage />} />
-            <Route path="/lost-and-found" element={<LostAndFoundPage />} />
-            <Route path="/missing-persons" element={<MissingPersonsPage />} />
-            <Route path="/report-missing-person" element={<ReportMissingPersonPage />} />
-            <Route path="/report-missing-property" element={<ReportMissingPropertyPage />} />
-            <Route path="/search-stations" element={<SearchStationsPage />} />
-            <Route path="/laws-and-rights" element={<LawsAndRightsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-          </Route>
+              <Route element={<AppLayout />}>
+                <Route path="/main" element={<MainDashboardPage />} />
+                <Route path="/report-crime" element={<ReportCrimePage />} />
+                <Route path="/get-help" element={<GetHelpPage />} />
+                <Route path="/lost-and-found" element={<LostAndFoundPage />} />
+                <Route path="/missing-persons" element={<MissingPersonsPage />} />
+                <Route path="/report-missing-person" element={<ReportMissingPersonPage />} />
+                <Route path="/report-missing-property" element={<ReportMissingPropertyPage />} />
+                <Route path="/search-stations" element={<SearchStationsPage />} />
+                <Route path="/laws-and-rights" element={<LawsAndRightsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+              </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

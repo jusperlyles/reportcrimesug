@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaBars, FaArrowLeft, FaPhone, FaBell } from "react-icons/fa";
+import { FaBars, FaArrowLeft, FaPhone, FaBell, FaUser } from "react-icons/fa";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SECONDARY_ROUTES = [
   "/report-crime", "/get-help", "/lost-and-found", "/missing-persons",
@@ -28,6 +29,7 @@ interface TopBarProps {
 export function TopBar({ onMenuClick }: TopBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, profile } = useAuth();
   const path = location.pathname;
   const isSecondary = SECONDARY_ROUTES.includes(path);
   const title = ROUTE_TITLES[path] || "ReportCrime Uganda";
@@ -70,6 +72,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         >
           <FaPhone size={12} />
         </a>
+        {/* Profile avatar - tap to auth */}
+        <button
+          onClick={() => navigate(user ? "/settings" : "/auth")}
+          className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all"
+        >
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <FaUser className="text-white/70" size={12} />
+          )}
+        </button>
       </div>
     </header>
   );
