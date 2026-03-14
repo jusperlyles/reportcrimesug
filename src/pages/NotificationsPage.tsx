@@ -1,47 +1,107 @@
-import { FaBell } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaBell, FaCheck } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLang } from "@/contexts/LanguageContext";
 
-const notifications = [
-  { title: "Report #RC-2026-0342 Updated", desc: "Your crime report has been assigned to an officer.", time: "2 hours ago", read: false },
-  { title: "Missing Person Alert", desc: "Sarah Nakamya (14) reported missing in Kampala Central.", time: "5 hours ago", read: false },
-  { title: "Report Submitted", desc: "Your report #RC-2026-0341 was successfully submitted.", time: "1 day ago", read: true },
-  { title: "System Update", desc: "New features added: Laws & Rights section, improved search.", time: "3 days ago", read: true },
-];
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  is_global: boolean;
+  created_at: string;
+}
 
 export function NotificationsPage() {
+  const { user } = useAuth();
+  const { t } = useLang();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    supabase
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setNotifications((data as Notification[]) || []);
+        setLoading(false);
+      });
+  }, [user]);
+
+  const markRead = async (id: string) => {
+    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
+  };
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
+  // Fallback demo if no DB notifications
+  const displayItems = notifications.length > 0 ? notifications : [
+    { id: "1", title: "Welcome to ReportCrime", message: "Sign in to start reporting crimes and getting alerts.", is_read: false, is_global: true, created_at: new Date().toISOString() },
+  ];
+
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-1">
-        <FaBell className="text-warning" /> Notifications
+        <FaBell className="text-warning" /> {t("notifications")}
       </h1>
       <p className="text-muted-foreground text-sm mb-6">Stay updated on your reports and alerts.</p>
 
-      <div className="space-y-3">
-        {notifications.map((n, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className={`p-4 rounded-2xl border transition-all ${
-              n.read
-                ? "bg-card border-border/50"
-                : "bg-primary/5 border-primary/20 shadow-sm"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  {!n.read && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
-                  <h3 className="font-semibold text-sm text-foreground">{n.title}</h3>
+      {loading ? (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {displayItems.map((n, i) => (
+            <motion.div
+              key={n.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              className={`p-4 rounded-2xl border transition-all ${
+                n.is_read
+                  ? "bg-card border-border/50"
+                  : "bg-primary/5 border-primary/20 shadow-sm"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+                    <h3 className="font-semibold text-sm text-foreground">{n.title}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{n.desc}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo(n.created_at)}</span>
+                  {!n.is_read && user && (
+                    <button
+                      onClick={() => markRead(n.id)}
+                      className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all"
+                    >
+                      <FaCheck size={8} />
+                    </button>
+                  )}
+                </div>
               </div>
-              <span className="text-[10px] text-muted-foreground whitespace-nowrap">{n.time}</span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

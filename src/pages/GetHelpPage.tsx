@@ -1,25 +1,26 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   FaWhatsapp, FaSms, FaPhone, FaEnvelope, FaRobot,
-  FaPaperPlane, FaTimes, FaUser, FaShieldAlt, FaGavel,
-  FaUserFriends, FaSearch, FaHandsHelping, FaFacebook,
-  FaTwitter, FaInstagram,
+  FaPaperPlane, FaTimes, FaHandsHelping,
+  FaFacebookF, FaInstagram, FaGlobe,
 } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLang } from "@/contexts/LanguageContext";
 
 /* Knowledge Base */
 const KB: Record<string, { patterns: string[]; response: string }> = {
   emergency: {
-    patterns: ["emergency", "urgent", "help me", "danger", "attacked", "sos", "999", "112"],
-    response: `🚨 **EMERGENCY RESPONSE**\n\nCall these numbers **right now**:\n\n• 📞 **999** – Uganda Police Force (free, 24/7)\n• 📞 **112** – General Emergency (all networks)\n• 📞 **0800-199-699** – UPF Toll-free hotline\n• 📞 **0414-343-088** – Kampala CPS\n\nIf you are in immediate danger:\n1. Get to a safe location first\n2. Call 999 immediately\n3. Stay on the line with the operator`,
+    patterns: ["emergency", "urgent", "help me", "danger", "attacked", "sos", "999", "112", "211"],
+    response: `🚨 **EMERGENCY RESPONSE**\n\nCall these numbers **right now**:\n\n• 📞 **999** – Uganda Police Force (free, 24/7)\n• 📞 **211** – Emergency Services\n• 📞 **112** – General Emergency (all networks)\n• 📞 **0800-199-699** – UPF Toll-free hotline\n• 📞 **0414-343-088** – Kampala CPS\n\nIf you are in immediate danger:\n1. Get to a safe location first\n2. Call 999 immediately\n3. Stay on the line with the operator`,
   },
   report_crime: {
     patterns: ["report crime", "how to report", "submit report", "file report"],
-    response: `📝 **How to Report a Crime**\n\n1. Go to **Report Crime** from the dashboard\n2. Select the crime type\n3. Provide location (use auto-detect!)\n4. Describe the incident in detail\n5. Upload evidence if available\n6. Submit – you'll receive a Case Reference Number\n\nFor emergencies, always call **999** first.`,
+    response: `📝 **How to Report a Crime**\n\n1. Go to **Report Crime** from the dashboard\n2. Select the crime type\n3. Provide location (use auto-detect!)\n4. Describe the incident in detail\n5. Upload evidence or record voice note\n6. Submit – you'll receive a Case Reference Number\n\nFor emergencies, always call **999** first.`,
   },
   missing_person: {
     patterns: ["missing person", "someone missing", "find person", "lost person"],
-    response: `👤 **Missing Person?**\n\nReport immediately:\n1. Go to **Missing Persons** section\n2. File a detailed report\n3. Include recent photos\n\nContact:\n• Police: **999**\n• Child Helpline: **116**\n• Red Cross: **0417-258-305**`,
+    response: `👤 **Missing Person?**\n\nReport immediately:\n1. Go to **Missing Persons** section\n2. File a detailed report with recent photos\n\nContact:\n• Police: **999**\n• Child Helpline: **116**\n• Red Cross: **0417-258-305**`,
   },
   rights: {
     patterns: ["rights", "my rights", "legal rights", "constitution", "law"],
@@ -40,19 +41,22 @@ function matchKB(input: string): string | null {
 }
 
 const CONTACT_METHODS = [
-  { icon: FaPhone, label: "Emergency", value: "999", href: "tel:999", color: "hsl(0 84% 60%)" },
-  { icon: FaWhatsapp, label: "WhatsApp", value: "Chat", href: "https://wa.me/256800199699", color: "hsl(142 71% 45%)" },
-  { icon: FaSms, label: "SMS", value: "Text", href: "sms:999", color: "hsl(210 98% 65%)" },
-  { icon: FaEnvelope, label: "Email", value: "Report", href: "mailto:support@reportcrime.ug", color: "hsl(270 50% 55%)" },
+  { icon: FaPhone, label: "Emergency 999", value: "Call Now", href: "tel:999", color: "hsl(0 84% 60%)", glow: "hsl(0 84% 60% / 0.3)" },
+  { icon: FaPhone, label: "Emergency 211", value: "Call Now", href: "tel:211", color: "hsl(38 92% 50%)", glow: "hsl(38 92% 50% / 0.3)" },
+  { icon: FaWhatsapp, label: "WhatsApp", value: "+256 799 999 999", href: "https://wa.me/256799999999", color: "hsl(142 71% 45%)", glow: "hsl(142 71% 45% / 0.3)" },
+  { icon: FaSms, label: "SMS", value: "Text 999", href: "sms:999", color: "hsl(210 98% 65%)", glow: "hsl(210 98% 65% / 0.3)" },
+  { icon: FaEnvelope, label: "Email", value: "Report", href: "mailto:support@reportcrime.ug", color: "hsl(270 50% 55%)", glow: "hsl(270 50% 55% / 0.3)" },
 ];
 
 const SOCIAL_LINKS = [
-  { icon: FaFacebook, label: "Facebook", href: "https://facebook.com/UgandaPoliceForce", color: "hsl(217 91% 60%)" },
-  { icon: FaTwitter, label: "Twitter/X", href: "https://x.com/aboraborauganda", color: "hsl(200 90% 62%)" },
-  { icon: FaInstagram, label: "Instagram", href: "https://instagram.com/ugandapoliceforce", color: "hsl(330 81% 60%)" },
+  { icon: FaXTwitter, label: "X (Twitter)", href: "https://x.com/aboraborauganda", color: "hsl(0 0% 20%)" },
+  { icon: FaInstagram, label: "Instagram", href: "https://www.instagram.com/metpolice_uk/", color: "hsl(330 81% 60%)" },
+  { icon: FaFacebookF, label: "Facebook", href: "https://facebook.com/UgandaPoliceForce", color: "hsl(217 91% 60%)" },
+  { icon: FaGlobe, label: "Website", href: "https://upf.go.ug", color: "hsl(192 91% 36%)" },
 ];
 
 export function GetHelpPage() {
+  const { t } = useLang();
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: "bot", text: "👋 Hi! I'm the ReportCrime AI assistant. How can I help you today?\n\nTry asking about:\n• Emergency contacts\n• How to report a crime\n• Missing persons\n• Your legal rights" },
@@ -72,7 +76,7 @@ export function GetHelpPage() {
 
     setTimeout(() => {
       const kbMatch = matchKB(userMsg);
-      const botResponse = kbMatch || "I'm not sure about that. Try asking about **emergency contacts**, **reporting crimes**, **missing persons**, or **your rights**. For urgent help, call **999**.";
+      const botResponse = kbMatch || "I'm not sure about that. Try asking about **emergency contacts**, **reporting crimes**, **missing persons**, or **your rights**. For urgent help, call **999** or **211**.";
       setMessages((prev) => [...prev, { role: "bot", text: botResponse }]);
     }, 600);
   }, [input]);
@@ -84,25 +88,39 @@ export function GetHelpPage() {
       className="max-w-2xl mx-auto"
     >
       <h1 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-1">
-        <FaHandsHelping className="text-success" /> Get Help
+        <FaHandsHelping className="text-success" /> {t("getHelp")}
       </h1>
       <p className="text-muted-foreground text-sm mb-6">Contact support, emergency services, or chat with our AI assistant.</p>
 
+      {/* Emergency Banner */}
+      <motion.div
+        className="mb-6 p-4 rounded-2xl border border-destructive/30 relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, hsl(0 84% 60% / 0.08), hsl(38 92% 50% / 0.05))" }}
+        animate={{ borderColor: ["hsl(0 84% 60% / 0.3)", "hsl(0 84% 60% / 0.6)", "hsl(0 84% 60% / 0.3)"] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <p className="text-sm font-bold text-destructive mb-1">🚨 In immediate danger?</p>
+        <p className="text-xs text-muted-foreground">Call <strong>999</strong> or <strong>211</strong> right now. Your safety comes first.</p>
+      </motion.div>
+
       {/* Contact Methods */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         {CONTACT_METHODS.map((method, i) => {
           const Icon = method.icon;
           return (
             <motion.a
               key={method.label}
               href={method.href}
+              target={method.href.startsWith("http") ? "_blank" : undefined}
+              rel="noopener noreferrer"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-              className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/50 hover:shadow-lg hover:border-primary/30 transition-all"
+              transition={{ delay: i * 0.06 }}
+              whileHover={{ y: -2, boxShadow: `0 8px 24px ${method.glow}` }}
+              className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all"
             >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: method.color }}>
-                <Icon className="text-white" size={16} />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: method.color }}>
+                <Icon className="text-white" size={18} />
               </div>
               <div>
                 <p className="font-semibold text-sm text-foreground">{method.label}</p>
@@ -115,21 +133,24 @@ export function GetHelpPage() {
 
       {/* Social Media */}
       <div className="mb-6">
-        <h2 className="text-sm font-semibold text-foreground mb-3">Follow Uganda Police Force</h2>
-        <div className="flex gap-3">
+        <h2 className="text-sm font-semibold text-foreground mb-3">Follow & Connect</h2>
+        <div className="flex gap-3 flex-wrap">
           {SOCIAL_LINKS.map((link) => {
             const Icon = link.icon;
             return (
-              <a
+              <motion.a
                 key={link.label}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl flex items-center justify-center hover:scale-110 transition-transform"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md"
                 style={{ background: link.color }}
+                title={link.label}
               >
                 <Icon className="text-white" size={16} />
-              </a>
+              </motion.a>
             );
           })}
         </div>
@@ -139,10 +160,12 @@ export function GetHelpPage() {
       {!chatOpen && (
         <motion.button
           onClick={() => setChatOpen(true)}
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
           className="fixed bottom-24 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full shadow-xl flex items-center justify-center z-40"
           style={{ background: "var(--gradient-primary)" }}
+          animate={{ boxShadow: ["0 4px 20px hsl(234 85% 65% / 0.3)", "0 4px 30px hsl(234 85% 65% / 0.6)", "0 4px 20px hsl(234 85% 65% / 0.3)"] }}
+          transition={{ duration: 2, repeat: Infinity }}
         >
           <FaRobot className="text-white text-xl" />
         </motion.button>
@@ -162,8 +185,9 @@ export function GetHelpPage() {
               <div className="flex items-center gap-2">
                 <FaRobot className="text-white" />
                 <span className="text-white font-semibold text-sm">AI Assistant</span>
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               </div>
-              <button onClick={() => setChatOpen(false)} className="text-white/70 hover:text-white">
+              <button onClick={() => setChatOpen(false)} className="text-white/70 hover:text-white transition-colors">
                 <FaTimes />
               </button>
             </div>
@@ -171,15 +195,20 @@ export function GetHelpPage() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-3 space-y-3">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-line ${
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-muted text-foreground rounded-bl-md"
                   }`}>
                     {msg.text}
                   </div>
-                </div>
+                </motion.div>
               ))}
               <div ref={chatEndRef} />
             </div>
@@ -191,11 +220,11 @@ export function GetHelpPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 placeholder="Ask me anything..."
-                className="flex-1 px-3 py-2 rounded-xl bg-muted text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="flex-1 px-3 py-2.5 rounded-xl bg-muted text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
               <button
                 onClick={sendMessage}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-primary-foreground"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-primary-foreground shrink-0"
                 style={{ background: "var(--gradient-primary)" }}
               >
                 <FaPaperPlane size={12} />
