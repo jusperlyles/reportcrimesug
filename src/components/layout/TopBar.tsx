@@ -6,6 +6,7 @@ const SECONDARY_ROUTES = [
   "/report-crime", "/get-help", "/lost-and-found", "/missing-persons",
   "/report-missing-person", "/report-missing-property", "/laws-and-rights",
   "/search-stations", "/settings", "/notifications",
+  "/admin/manage-users", "/admin/manage-admins", "/admin/pending-requests",
 ];
 
 const ROUTE_TITLES: Record<string, string> = {
@@ -20,6 +21,10 @@ const ROUTE_TITLES: Record<string, string> = {
   "/search-stations": "Search Stations",
   "/settings": "Settings",
   "/notifications": "Notifications",
+  "/admin": "Admin Dashboard",
+  "/admin/manage-users": "Manage Users",
+  "/admin/manage-admins": "Manage Admins",
+  "/admin/pending-requests": "Pending Requests",
 };
 
 interface TopBarProps {
@@ -50,7 +55,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         ) : (
           <button
             onClick={onMenuClick}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-all md:hidden"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-all"
           >
             <FaBars size={14} />
           </button>
@@ -72,7 +77,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         >
           <FaPhone size={12} />
         </a>
-        {/* Profile avatar - tap to auth */}
         <button
           onClick={() => navigate(user ? "/settings" : "/auth")}
           className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all"

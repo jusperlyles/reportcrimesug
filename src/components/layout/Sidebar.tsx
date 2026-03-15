@@ -2,9 +2,12 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaTachometerAlt, FaCog, FaBell, FaLifeRing,
   FaSignOutAlt, FaTimes, FaShieldAlt, FaUser, FaSignInAlt,
+  FaUserShield,
 } from "react-icons/fa";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SidebarProps {
   open: boolean;
@@ -15,12 +18,19 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { t } = useLang();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
 
   const NAV_ITEMS = [
     { to: "/main", icon: FaTachometerAlt, label: t("dashboard") },
     { to: "/get-help", icon: FaLifeRing, label: t("getHelp") },
     { to: "/notifications", icon: FaBell, label: t("notifications") },
     { to: "/settings", icon: FaCog, label: t("settings") },
+    ...(isAdmin ? [{ to: "/admin", icon: FaUserShield, label: "Admin" }] : []),
   ];
 
   return (
@@ -40,7 +50,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           background: "linear-gradient(180deg, hsl(232 47% 9%) 0%, hsl(234 40% 14%) 100%)",
         }}
       >
-        {/* Header with profile tap */}
+        {/* Header - tap profile to auth */}
         <div className="flex items-center justify-between p-5 border-b border-white/10">
           <button
             onClick={() => { onClose(); navigate(user ? "/settings" : "/auth"); }}
