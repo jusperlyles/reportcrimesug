@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaShieldAlt, FaEnvelope, FaLock } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -7,14 +7,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "@/hooks/use-toast";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AuthPage() {
   const navigate = useNavigate();
   const { t } = useLang();
+  const { user } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // If already logged in, redirect
+  useEffect(() => {
+    if (!user) return;
+    const checkAdmin = async () => {
+      const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+      navigate(data ? "/admin" : "/main");
+    };
+    checkAdmin();
+  }, [user, navigate]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -25,7 +37,7 @@ export function AuthPage() {
       if (result.error) {
         toast({ title: "Error", description: String(result.error), variant: "destructive" });
       }
-    } catch (e) {
+    } catch {
       toast({ title: "Error", description: "Failed to sign in with Google", variant: "destructive" });
     }
     setLoading(false);
@@ -47,11 +59,13 @@ export function AuthPage() {
         toast({ title: "Check your email", description: "We sent a confirmation link." });
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
-      } else {
-        navigate("/main");
+      } else if (data.user) {
+        // Check if admin
+        const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
+        navigate(isAdmin ? "/admin" : "/main");
       }
     }
     setLoading(false);
@@ -61,7 +75,7 @@ export function AuthPage() {
     <div
       className="min-h-screen flex items-center justify-center p-4"
       style={{
-        background: "linear-gradient(135deg, hsl(234 85% 15%) 0%, hsl(270 40% 12%) 50%, hsl(232 47% 9%) 100%)",
+        background: "linear-gradient(135deg, hsl(232 47% 7%) 0%, hsl(234 40% 14%) 50%, hsl(270 30% 10%) 100%)",
       }}
     >
       <motion.div
@@ -81,7 +95,7 @@ export function AuthPage() {
             <FaShieldAlt className="text-white text-2xl" />
           </motion.div>
           <h1 className="text-2xl font-bold text-white">ReportCrime Uganda</h1>
-          <p className="text-white/50 text-sm mt-1">
+          <p className="text-white/40 text-sm mt-1">
             {isSignUp ? t("createAccount") : t("welcomeBack")}
           </p>
         </div>

@@ -19,6 +19,10 @@ import { SearchStationsPage } from "./pages/SearchStationsPage";
 import { LawsAndRightsPage } from "./pages/LawsAndRightsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { AdminManageUsersPage } from "./pages/AdminManageUsersPage";
+import { AdminManageAdminsPage } from "./pages/AdminManageAdminsPage";
+import { AdminPendingRequestsPage } from "./pages/AdminPendingRequestsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +51,11 @@ const App = () => (
                 <Route path="/laws-and-rights" element={<LawsAndRightsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin/manage-users" element={<AdminManageUsersPage />} />
+                <Route path="/admin/manage-admins" element={<AdminManageAdminsPage />} />
+                <Route path="/admin/pending-requests" element={<AdminPendingRequestsPage />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
